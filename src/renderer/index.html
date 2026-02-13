@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WireGuard Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-box">
+                <h1>پنل مدیریت WireGuard</h1>
+                <p class="subtitle">برای ورود اطلاعات سرور خود را وارد کنید</p>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="server-url">آدرس سرور</label>
+                        <input 
+                            type="text" 
+                            id="server-url" 
+                            placeholder="https://your-server.com" 
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username">نام کاربری</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            placeholder="admin" 
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">رمز عبور</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="رمز عبور خود را وارد کنید" 
+                            required
+                        >
+                    </div>
+                    
+                    <div id="login-error" class="error-message" style="display: none;"></div>
+                    
+                    <button type="submit" class="btn btn-primary" id="login-btn">
+                        ورود
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="page">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>پنل مدیریت WireGuard</h1>
+                <div class="header-actions">
+                    <button class="btn btn-success" id="create-client-btn">
+                        + کلاینت جدید
+                    </button>
+                    <button class="btn btn-secondary" id="refresh-btn">
+                        ↻ بروزرسانی
+                    </button>
+                    <button class="btn btn-danger" id="logout-btn">
+                        خروج
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="total-clients">0</div>
+                    <div class="stat-label">کل کلاینت‌ها</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✓</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="active-clients">0</div>
+                    <div class="stat-label">فعال</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="expired-clients">0</div>
+                    <div class="stat-label">منقضی شده</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clients List -->
+        <div class="clients-container">
+            <div class="section-header">
+                <h2>لیست کلاینت‌ها</h2>
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="جستجو در کلاینت‌ها..."
+                    >
+                </div>
+            </div>
+            
+            <div id="clients-list" class="clients-grid">
+                <!-- Client cards will be added here dynamically -->
+            </div>
+            
+            <div id="no-clients" class="no-clients" style="display: none;">
+                <p>هیچ کلاینتی یافت نشد</p>
+                <p class="subtitle">برای شروع، یک کلاینت جدید ایجاد کنید</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Client Modal -->
+    <div id="create-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>ایجاد کلاینت جدید</h2>
+                <button class="close-btn" id="close-create-modal">&times;</button>
+            </div>
+            
+            <form id="create-client-form">
+                <div class="form-group">
+                    <label for="client-name">نام کلاینت *</label>
+                    <input 
+                        type="text" 
+                        id="client-name" 
+                        placeholder="مثال: user-1" 
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="traffic-limit">محدودیت ترافیک (گیگابایت)</label>
+                    <input 
+                        type="number" 
+                        id="traffic-limit" 
+                        placeholder="50" 
+                        min="1"
+                    >
+                    <small>خالی بگذارید برای نامحدود</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiration-days">مدت اعتبار (روز)</label>
+                    <input 
+                        type="number" 
+                        id="expiration-days" 
+                        placeholder="30" 
+                        min="1"
+                    >
+                    <small>خالی بگذارید برای نامحدود</small>
+                </div>
+                
+                <div id="create-error" class="error-message" style="display: none;"></div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-create-btn">
+                        انصراف
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submit-create-btn">
+                        ایجاد کلاینت
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content modal-qr">
+            <div class="modal-header">
+                <h2>QR Code</h2>
+                <button class="close-btn" id="close-qr-modal">&times;</button>
+            </div>
+            
+            <div class="qr-container">
+                <canvas id="qr-canvas"></canvas>
+                <p class="qr-info">برای اسکن با دوربین گوشی خود استفاده کنید</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
