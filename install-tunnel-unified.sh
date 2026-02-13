@@ -87,6 +87,19 @@ if [[ "$ROLE" == "foreign" ]]; then
     # Generate UDP2RAW password
     UDP2RAW_PASSWORD=$(openssl rand -hex 16)
     
+    # Get API credentials for management app
+    echo ""
+    echo -e "${YELLOW}═══ API Credentials for Desktop App ═══${NC}"
+    read -p "Enter API username [default: admin]: " API_USERNAME
+    API_USERNAME=${API_USERNAME:-admin}
+    read -s -p "Enter API password: " API_PASSWORD
+    echo ""
+    while [ -z "$API_PASSWORD" ]; do
+        echo -e "${RED}Password cannot be empty!${NC}"
+        read -s -p "Enter API password: " API_PASSWORD
+        echo ""
+    done
+    
     echo ""
     echo -e "${GREEN}═══════════════════════════════════════${NC}"
     echo -e "${GREEN}     Step 3: Configuring WireGuard${NC}"
@@ -175,12 +188,24 @@ Mode: faketcp
 ═══ Iran Server Info ═══
 Iran IP: $IRAN_IP
 
+═══ API Credentials (Desktop App) ═══
+Username: $API_USERNAME
+Password: $API_PASSWORD
+API URL: https://panel.example.com (update with your domain)
+
+⚠ IMPORTANT: Save these credentials securely!
+   You will need them to connect the Desktop App.
+
 ═══ Next Steps ═══
-1. Copy this password: $UDP2RAW_PASSWORD
-2. Run this script on Iran server ($IRAN_IP)
-3. When prompted, enter:
+1. Install API/Panel on this server
+2. Copy UDP2RAW password: $UDP2RAW_PASSWORD
+3. Run this script on Iran server ($IRAN_IP)
+4. When prompted on Iran server, enter:
    - Foreign Server IP: $(curl -s ifconfig.me)
    - UDP2RAW Password: $UDP2RAW_PASSWORD
+5. Use API credentials in Desktop App:
+   - Username: $API_USERNAME
+   - Password: $API_PASSWORD
 
 ═══ Status Check ═══
 systemctl status wg-quick@wg0
@@ -200,7 +225,11 @@ EOF
     echo -e "UDP2RAW Password: ${GREEN}$UDP2RAW_PASSWORD${NC}"
     echo -e "Your Server IP: ${GREEN}$(curl -s ifconfig.me)${NC}"
     echo ""
-    echo -e "${YELLOW}⚠ Save this password! You need it for Iran server installation.${NC}"
+    echo -e "${BLUE}═══ API Credentials for Desktop App ═══${NC}"
+    echo -e "Username: ${GREEN}$API_USERNAME${NC}"
+    echo -e "Password: ${GREEN}$API_PASSWORD${NC}"
+    echo ""
+    echo -e "${YELLOW}⚠ Save these credentials! You need them for Desktop App.${NC}"
     
 else
     #############################################
