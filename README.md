@@ -1,272 +1,291 @@
-﻿#  WireGuard + UDP2RAW Tunnel + FastAPI Panel
+﻿# 🔐 WireGuard Tunnel + Management Panel
 
-Complete automated installation system for WireGuard VPN with UDP2RAW obfuscation and management panel.
+**نسخه 2.0** - سیستم کامل مدیریت تانل WireGuard با پنل وب و دسکتاپ
 
-##  Features
-
--  **One-click installation** for both Foreign and Iran servers  
--  **WireGuard VPN** with automatic configuration
--  **UDP2RAW obfuscation** (faketcp mode) for bypassing DPI
--  **FastAPI Management Panel** with REST API
--  **SSL/HTTPS** with automatic Let's Encrypt certificates
--  **Nginx reverse proxy** for secure API access
--  **Plan-based subscriptions** (10GB to 100GB monthly plans)
--  **Automatic expiration** and traffic limit enforcement
--  **QR code generation** for mobile clients  
--  **Desktop application support** for client management
--  **Cron job** for automatic client expiration checks
--  Supports Ubuntu 22.04 LTS
-
-##  Architecture
-
-```
-Client  Iran Server (UDP2RAW Relay:443)  Foreign Server (UDP2RAW Server:8443)  WireGuard:51820  Internet
-                                                      
-                                            FastAPI Panel (HTTPS)
-                                            Desktop App Management
-```
-
-##  Quick Start
-
-### Complete Installation (Recommended)
-
-**Foreign Server (with Panel):**
-```bash
-curl -fsSL https://raw.githubusercontent.com/Mehrdad-Hooshmand/wireguard-tunnel/main/install-tunnel-complete.sh | sudo bash
-```
-
-When prompted:
-- Choose option **1** (Foreign Server)
-- Enter Iran server IP
-- Enter your domain (e.g., panel.example.com)
-- Enter API username and password
-
-**Iran Server (Relay only):**
-```bash
-curl -fsSL https://raw.githubusercontent.com/Mehrdad-Hooshmand/wireguard-tunnel/main/install-tunnel-complete.sh | sudo bash
-```
-
-When prompted:
-- Choose option **2** (Iran Relay)  
-- Enter Foreign server IP
-- Enter UDP2RAW password (from foreign server setup)
+[![GitHub Release](https://img.shields.io/badge/release-v2.0.0-blue.svg)](https://github.com/Mehrdad-Hooshmand/wireguard-tunnel/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-##  API Endpoints
+## 📋 فهرست مطالب
+- [ویگیها](#-ویگیها)
+- [معماری سیستم](#-معماری-سیستم)
+- [نصب سریع](#-نصب-سریع)
+- [دسکتاپ اپلیکیشن](#-دسکتاپ-اپلیکیشن)
+- [API Reference](#-api-reference)
+- [عیبیابی](#-عیبیابی)
 
-Base URL: https://your-domain.com/api/v1
+---
+
+## ✨ ویگیها
+
+### 🚀 نصب خودکار یکدکمهای
+- نصب و پیکربندی کامل WireGuard
+- تانل UDP2RAW برای عبور از فیلترینگ (fake TCP)
+- سرور API با FastAPI
+- Nginx + SSL/HTTPS خودکار
+- سرویسهای systemd
+
+### 📊 پنل مدیریت
+- **Web API**: رابط RESTful کامل
+- **Desktop App**: برنامه ویندوزی با رابط گرافیکی
+- مدیریت کلاینتها (ساخت ویرایش حذف)
+- نمایش آمار ترافیک و زمان باقیمانده
+- دانلود QR Code و فایل کانفیگ
+- پلنهای اشتراکی (10GB تا 100GB)
+
+### 🔄 مدیریت خودکار
+- بررسی خودکار انقضا هر ساعت
+- غیرفعالسازی خودکار کلاینتهای منقضی شده
+- محدودیت ترافیک برای هر کاربر
+- لاگگیری کامل
+
+---
+
+## 🏗 معماری سیستم
+
+```
+┌─────────────┐                  ┌──────────────┐                  ┌─────────────┐
+│   کلاینت    │  ◄──encrypted──►  │ سرور ایران   │  ◄──encrypted──►  │ سرور خارج   │
+│  WireGuard  │                  │  UDP2RAW     │                  │  WireGuard  │
+│             │                  │  Relay       │                  │  + Panel    │
+└─────────────┘                  └──────────────┘                  └─────────────┘
+                                   Port 443                          Port 8443
+                                   (Fake TCP)                       (Fake TCP)
+```
+
+**جریان داده:**
+1. کلاینت → سرور ایران (port 443)
+2. UDP2RAW Relay (ایران) → UDP2RAW Server (خارج port 8443)
+3. UDP2RAW Server → WireGuard (localhost:51820)
+4. پنل مدیریت: HTTPS (port 443) → Nginx → FastAPI (port 8000)
+
+---
+
+## 🚀 نصب سریع
+
+### سرور خارج (با پنل مدیریت)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Mehrdad-Hooshmand/wireguard-tunnel/main/install-tunnel-complete.sh | sudo bash
+```
+
+**ورودیهای مورد نیاز:**
+- انتخاب: `1` (Foreign Server)
+- IP سرور ایران: `94.182.92.246`
+- دامنه: `yourdomain.com` (باید به IP سرور اشاره کند)
+- نام کاربری پنل: `admin` (دلخواه)
+- رمز عبور پنل: `********` (دلخواه و امن)
+
+### سرور ایران (relay)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Mehrdad-Hooshmand/wireguard-tunnel/main/install-tunnel-complete.sh | sudo bash
+```
+
+**ورودیهای مورد نیاز:**
+- انتخاب: `2` (Iran Relay)
+- IP سرور خارج: `45.252.182.213`
+- رمز UDP2RAW: (از فایل `/root/tunnel-config.txt` سرور خارج)
+- پورت: `443` (پیشنهادی)
+
+### اطلاعات دسترسی
+
+پس از نصب اطلاعات در فایل زیر ذخیره میشود:
+```bash
+cat /root/tunnel-config.txt
+```
+
+---
+
+## 💻 دسکتاپ اپلیکیشن
+
+### دانلود
+
+**نسخه 2.0.0 (Windows x64):**
+- 📦 حجم: ~190 MB
+- ✅ پشتیبانی از API Key Authentication
+- ✅ رابط کاربری فارسی
+- ✅ QR Code Generator داخلی
+
+**دانلود مستقیم:**
+```
+https://github.com/Mehrdad-Hooshmand/wireguard-tunnel/releases/download/v2.0.0/WireGuard-Manager-v2.0.0.zip
+```
+
+### نحوه استفاده
+
+1. فایل ZIP را Extract کنید
+2. فایل `WireGuard-Manager.exe` را اجرا کنید
+3. اطلاعات لاگین را وارد کنید:
+   - **Server URL**: `https://yourdomain.com`
+   - **Username**: نام کاربری (اختیاری)
+   - **API Key**: از `/root/tunnel-config.txt`
+
+### اسکرینشات
+
+<div align="center">
+  <img src="https://via.placeholder.com/800x450?text=Login+Screen" alt="صفحه لاگین">
+  <img src="https://via.placeholder.com/800x450?text=Dashboard" alt="داشبورد">
+</div>
+
+---
+
+## 📡 API Reference
 
 ### Authentication
-All requests require API key in header:
+
+تمام درخواستها نیاز به header زیر دارند:
 ```
-x-api-key: YOUR_API_KEY
-```
-
-### Available Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /plans | List all subscription plans |
-| POST | /plans | Create custom plan |
-| POST | /clients/by-plan | Create client by plan ID |
-| GET | /clients | List all clients |
-| GET | /clients/{id}/config | Download WireGuard config |
-| GET | /clients/{id}/qrcode | Get QR code image |
-| GET | /clients/{id}/traffic | Check traffic usage |
-| POST | /clients/{id}/renew | Renew subscription |
-| DELETE | /clients/{id} | Delete client |
-| POST | /maintenance/check-expiration | Manual expiration check |
-
-### Example Usage
-
-**Create client with 50GB plan:**
-```bash
-curl -X POST -H "x-api-key: YOUR_KEY" \\
-  "https://your-domain.com/api/v1/clients/by-plan?name=user123&plan_id=5"
+x-api-key: YOUR_API_KEY_HERE
 ```
 
-**Check traffic:**
-```bash
-curl -H "x-api-key: YOUR_KEY" \\
-  "https://your-domain.com/api/v1/clients/CLIENT_ID/traffic"
+### Endpoints
+
+#### دریافت لیست پلنها
+```http
+GET /api/v1/plans
 ```
 
-**Download config:**
-```bash
-curl -H "x-api-key: YOUR_KEY" \\
-  "https://your-domain.com/api/v1/clients/CLIENT_ID/config" -o client.conf
+#### ساخت کلاینت جدید
+```http
+POST /api/v1/clients/by-plan?name=CLIENT_NAME&plan_id=PLAN_ID
 ```
+
+#### لیست کلاینتها
+```http
+GET /api/v1/clients
+```
+
+#### دریافت کانفیگ کلاینت
+```http
+GET /api/v1/clients/{client_id}/config
+```
+
+#### دریافت QR Code
+```http
+GET /api/v1/clients/{client_id}/qrcode
+```
+
+#### دریافت ترافیک مصرفی
+```http
+GET /api/v1/clients/{client_id}/traffic
+```
+
+#### تمدید اشتراک
+```http
+POST /api/v1/clients/{client_id}/renew
+```
+
+#### حذف کلاینت
+```http
+DELETE /api/v1/clients/{client_id}
+```
+
+### پلنهای پیشفرض
+
+| ID | نام | ترافیک | مدت | قیمت |
+|----|-----|--------|-----|------|
+| 1 | 10GB Monthly | 10 GB | 30 روز | $0 |
+| 2 | 20GB Monthly | 20 GB | 30 روز | $0 |
+| 3 | 30GB Monthly | 30 GB | 30 روز | $0 |
+| 4 | 40GB Monthly | 40 GB | 30 روز | $0 |
+| 5 | 50GB Monthly | 50 GB | 30 روز | $0 |
+| 6 | 100GB Monthly | 100 GB | 30 روز | $0 |
 
 ---
 
-##  Default Plans
+## 🛠 عیبیابی
 
-| ID | Name | Traffic | Duration | Auto-Expire |
-|----|------|---------|----------|-------------|
-| 1 | 10GB Monthly | 10 GB | 30 days |  |
-| 2 | 20GB Monthly | 20 GB | 30 days |  |
-| 3 | 30GB Monthly | 30 GB | 30 days |  |
-| 4 | 40GB Monthly | 40 GB | 30 days |  |
-| 5 | 50GB Monthly | 50 GB | 30 days |  |
-| 6 | 100GB Monthly | 100 GB | 30 days |  |
+### مشکل SSL
 
----
-
-##  Desktop Application
-
-A desktop app is available for managing clients with a GUI.
-
-**Features:**
-- Login with API credentials
-- Create/delete clients
-- View traffic statistics
-- Download configs and QR codes
-- Real-time status monitoring
-
-**Connection:**
-- Server URL: https://your-domain.com
-- Username: (from installation)
-- Password: (from installation)
-
----
-
-##  Configuration Files
-
-### Foreign Server
+اگر گواهی SSL ساخته نشد:
 ```bash
-/root/tunnel-config.txt          # All credentials and config
-/etc/wireguard/wg0.conf          # WireGuard interface config
-/opt/wireguard-api/main.py       # FastAPI application
-/opt/wireguard-api/wireguard.db  # SQLite database
-/etc/nginx/sites-available/wireguard-api  # Nginx config
-/var/log/wireguard-expiration.log         # Expiration log
+# بررسی DNS
+nslookup yourdomain.com
+
+# اجرای دستی certbot
+certbot --nginx -d yourdomain.com
 ```
 
-### Iran Server
+### API پاسخ نمیدهد
+
 ```bash
-/root/relay-config.txt           # Relay configuration
-```
-
----
-
-##  Service Management
-
-### Foreign Server
-```bash
-# Check services
-systemctl status wg-quick@wg0
-systemctl status udp2raw-server
+# بررسی سرویسها
 systemctl status wireguard-api
 systemctl status nginx
 
-# Restart API
-systemctl restart wireguard-api
-
-# View API logs
+# بررسی لاگها
 journalctl -u wireguard-api -f
-
-# View expiration logs
-tail -f /var/log/wireguard-expiration.log
+tail -f /var/log/nginx/error.log
 ```
 
-### Iran Server
+### UDP2RAW کار نمیکند
+
 ```bash
-# Check relay service
-systemctl status udp2raw-relay
-
-# View logs
-journalctl -u udp2raw-relay -f
-```
-
----
-
-##  Automatic Features
-
-### Cron Job (Hourly)
-- Checks for expired clients (past expiration date)
-- Checks for traffic-exceeded clients (used >= limit)
-- Automatically disables inactive clients
-- Logs all actions to /var/log/wireguard-expiration.log
-
-### Manual Check
-```bash
-curl -X POST -H "x-api-key: YOUR_KEY" \\
-  http://localhost:8000/api/v1/maintenance/check-expiration
-```
-
----
-
-##  Monitoring
-
-**API Documentation (Swagger):**
-```
-https://your-domain.com/docs
-```
-
-**Check database:**
-```bash
-sqlite3 /opt/wireguard-api/wireguard.db
-.tables
-SELECT * FROM clients;
-```
-
----
-
-##  Troubleshooting
-
-### API not responding
-```bash
-systemctl status wireguard-api
-journalctl -u wireguard-api -n 50
-```
-
-### SSL certificate issues
-```bash
-certbot certificates
-certbot renew --dry-run
-```
-
-### Clients not expiring
-```bash
-# Check cron
-crontab -l
-
-# Manual check
-bash /opt/wireguard-api/check_expiration.sh
-```
-
-### UDP2RAW connection issues
-```bash
-# Foreign server
+# سرور خارج
 systemctl status udp2raw-server
-ss -tulpn | grep 8443
+netstat -tulpn | grep 8443
 
-# Iran server
+# سرور ایران
 systemctl status udp2raw-relay
-ss -tulpn | grep 443
+netstat -tulpn | grep 443
+```
+
+### بررسی انقضا
+
+```bash
+# اجرای دستی
+bash /opt/wireguard-api/check_expiration.sh
+
+# نمایش لاگ
+cat /var/log/wireguard-expiration.log
 ```
 
 ---
 
-##  Security Notes
+## 📂 فایلهای مهم
 
-1. **Change API Key**: After installation, change the API key in /opt/wireguard-api/main.py
-2. **Firewall**: Ensure ports 80, 443, 8443 are open on foreign server; port 443 on Iran server
-3. **Backup Database**: Regularly backup /opt/wireguard-api/wireguard.db
-4. **SSL Renewal**: Certbot auto-renews certificates (check with systemctl status certbot.timer)
+### سرور خارج
+```
+/etc/wireguard/wg0.conf              # کانفیگ WireGuard
+/opt/wireguard-api/main.py            # کد FastAPI
+/opt/wireguard-api/wireguard.db       # دیتابیس SQLite
+/etc/nginx/sites-enabled/wireguard-api  # کانفیگ Nginx
+/etc/systemd/system/udp2raw-server.service
+/etc/systemd/system/wireguard-api.service
+/root/tunnel-config.txt               # اطلاعات کامل نصب
+```
+
+### سرور ایران
+```
+/etc/systemd/system/udp2raw-relay.service
+/root/relay-config.txt                # اطلاعات relay
+```
 
 ---
 
-##  License
+## 🔒 امنیت
 
-MIT License
+- ✅ کلیدهای خصوصی WireGuard به صورت خودکار تولید میشوند
+- ✅ API Key به صورت تصادفی ساخته میشود (64 کاراکتر hex)
+- ✅ رمز UDP2RAW تصادفی است
+- ✅ SSL/TLS با Let'\''s Encrypt
+- ⚠️ API Key را بعد از نصب عوض کنید
+- ⚠️ از فایروال برای محدود کردن دسترسی استفاده کنید
 
 ---
 
-##  Support
+## 📝 لایسنس
 
-For issues and questions, please open an issue on GitHub.
+MIT License - برای جزئیات به فایل [LICENSE](LICENSE) مراجعه کنید.
 
-**Version:** 3.0  
-**Last Updated:** 2026-02-14
+---
+
+## 🤝 مشارکت
+
+Issue و Pull Request خوشآمدید!
+
+---
+
+**ساخته شده با ❤️ در ایران**
