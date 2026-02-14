@@ -595,26 +595,11 @@ EOF
     echo -e "${GREEN}     Step 6: Configuring Nginx + SSL${NC}"
     echo -e "${GREEN}═══════════════════════════════════════${NC}"
     
-    # Configure Nginx
+    # Configure Nginx with HTTP only first
     cat > /etc/nginx/sites-available/wireguard-api << EOF
 server {
     listen 80;
     server_name $DOMAIN;
-    
-    location / {
-        return 301 https://\$server_name\$request_uri;
-    }
-}
-
-server {
-    listen 443 ssl http2;
-    server_name $DOMAIN;
-    
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
-    
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
     
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -629,13 +614,23 @@ EOF
     ln -sf /etc/nginx/sites-available/wireguard-api /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
     
-    # Get SSL certificate
+    # Test and reload nginx
+    nginx -t && systemctl reload nginx
+    
+    # Get SSL certificate with certbot (it will automatically update the nginx config)
     echo -e "${YELLOW}Getting SSL certificate...${NC}"
     certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email --redirect
     
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ SSL certificate obtained successfully${NC}"
+    else
+        echo -e "${YELLOW}⚠ SSL certificate failed, but Nginx is running on HTTP${NC}"
+        echo -e "${YELLOW}You can manually run: certbot --nginx -d $DOMAIN${NC}"
+    fi
+    
     systemctl reload nginx
     
-    echo -e "${GREEN}✓ Nginx and SSL configured${NC}"
+    echo -e "${GREEN}✓ Nginx configured${NC}"
     
     echo ""
     echo -e "${GREEN}═══════════════════════════════════════${NC}"
